@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <title>{% block title %}cnvAna{% endblock %}</title>
+    {% block style %}{% endblock %}
+    {% endblock %}
+    <script type="text/javascript" src="{{url_for('static', filename='/js/jquery-3.6.3.min.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" type="text/css">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous"> -->
+
+    <style type="text/css">
+        
+        .row-center{
+/*            text-align:center;*/
+            margin-top: 50px;
+            margin-left: 50px;
+        }
+        table{
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table caption{
+            font-size: 2em;
+            font-weight: bold;
+            margin: 1em;
+        }
+        th, td{
+            border: 1px solid #999;
+            text-align: center;
+            padding: 20px 0;
+        }
+        table thead tr{
+            background-color: #008c8c;
+            color: #fff;
+        }
+        table tbody tr:nth-child(odd){
+            background-color: #eee;
+        }
+        table tbody tr:hover{
+            background-color: #ccc;
+        }
+        table tbody tr td:first-child{
+            color: #f40;
+        }
+        table tfoot tr td{
+            text-align: right;
+            padding-right: 20px;
+        }
+
+    </style>
+
+
+</head>
+<body>
+<nav>
+    <ul><li><a href="{{ url_for('getInfo') }}">选择批次分析</a></li></ul>
+</nav>
+<main>
+    {% block content %}{% endblock %}
+</main>
+<footer class="text-center" 
+    {% block footer %}
+        <small>
+            &copy; 2022 <a href="http://germountx.com/" title="Germountx">GermountX</a>
+        </small>
+    {% endblock %}
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

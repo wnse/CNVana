@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<form role="form" method="post">
+
+    {{ form_counts.csrf_token }}
+    <div class="form-group">
+        {{ form_counts.values.label }}<br>
+        {{ form_counts.values }} {{ form_counts.submit_count }}
+    </div>
+</form>
+
+
+    <form method="post">
+        <table>
+            <tr>
+                <td>
+                    {{ test.hidden_tag() }}
+                    {{ test.colors }}
+                </td>
+                <td width="20"></td>
+                <td>
+                    <b>Selected</b><br>
+                    {% for s in selected %}
+                        {{ s }}<br>
+                    {% endfor %}
+                </td>
+            </tr>
+
+        </table>
+        <input type="submit">
+    </form>
+
+
+<br>
+<form method="post">
+    {{form_version.csrf_token}}
+    <div class="form-group">
+        {{form_version.version.label}}<br>
+        {{form_version.version}} {{form_version.submit_version}}
+    </div>
+</form>
+<br>标曲参数
+<form role="form" method="post", enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    <div class="form-group">
+        {% for f in form.items %}
+            {{ f.csrf_token }}
+            {{ f.version }} <br>
+            {{f.names}} {{f.tag}} {{f.coefficient}} {{f.intercept}} {{f.copy}}<br>
+        {% endfor %}
+        <br>CT值<br>
+        {{ form.ct_tag }} {{ form.ct_value }}
+        {{ form.calculate }}<br>
+        <br>文件上传<br>
+        {{ form.ct_file}} {{ form.submit_upfile}}<br>
+        {% for message in form.ct_file.errors %}
+            {{message}}<br>
+        {% endfor %}
+    </div>
+</form>
+
+
+{% endblock %}

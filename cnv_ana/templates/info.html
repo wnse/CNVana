@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script type="text/javascript">
+    function change_out(select){
+        var value = document.getElementById('batch').value
+        var out = document.getElementById('outdir')
+        out.value = value
+    }
+
+</script>
+
+<div class="container">
+<div class="row row-center">
+    <form role="form" method="post">
+        <div class="form-group">
+            {{ form.hidden_tag() }}
+            {{ form.bases.label }} {{ form.bases }}
+        </div>
+        <div class="form-group">
+            {{form.batch.label}} 
+            {{form.batch(onchange="change_out()")}}
+        </div>
+        <div>
+            {{form.outdir.label}} {{form.outdir}}
+        </div>
+        <div>
+            {{form.parallel.label}} {{form.parallel}}
+        </div>
+        <div>
+            {{form.thread.label}} {{form.thread}}
+        </div>
+        <br>
+        <div class="submit">
+            {{form.submit}} {{form.search}}
+        </div>
+
+<!--         <div>
+            <b>基线:</b>
+            {% for s in selected %}
+            {{ s }};
+            {% endfor %}
+            <br>
+        </div> -->
+    </form>
+</div>
+</div>
+{% endblock %}

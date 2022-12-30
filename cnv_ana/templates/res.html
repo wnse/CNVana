@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+    <div class="row row-center">
+        {{info|safe}}
+    </div>
+    <br><br>
+</div>
+<!-- <div class="container"> -->
+    <h3>结果：</h3>
+    <h5 style="color:Tomato">不要手动刷新该页面，本页面关闭前自动刷新</h5>
+    <!-- <div id=res_html style="width:50px;overflow:scroll"> -->
+    <div id=res_html style="width:50px" class="table-responsive">
+    </div>
+<!-- </div> -->
+
+
+<script type="text/javascript">
+    setTimeout(function(){
+                    get_res();
+                },
+                5000
+            );
+    setInterval(function(){
+                    get_res();
+                },
+                3000
+            );
+
+    function get_res(){
+        data = {{info_dict|tojson}},
+        $.ajax({
+            type:"POST",
+            url:"{{url_for('get_ana_res')}}",
+            dataType:"html",
+            data:data,
+            success: function(result){
+                $("#res_html").html(result)
+            },
+            error: function(){
+                $("#ress_html").html('fail')
+            }
+        })
+    }
+</script>
+
+{% endblock %}
+
+
