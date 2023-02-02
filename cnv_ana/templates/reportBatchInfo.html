@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script type="text/javascript">
+    function change_out(select){
+        var value = document.getElementById('batch').value
+        var out = document.getElementById('outdir')
+        out.value = value
+    }
+
+</script>
+
+<div class="container">
+<div class="row row-center">
+    <form role="form" method="post">
+        <div class="form-group">
+            {{ form.hidden_tag() }}
+            {{form.batch.label}} 
+            {{form.batch(onchange="change_out()")}}
+        </div>
+        <div>
+            {{form.outdir.label}} {{form.outdir}}
+        </div>
+        <br>
+        <div class="submit">
+            {{form.submit}} {{form.search}}
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}

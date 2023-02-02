@@ -3,7 +3,7 @@
 <head>
     {% block head %}
     <meta charset="UTF-8">
-    <title>{% block title %}cnvAna{% endblock %}</title>
+    <title>{% block title %}CNVana{% endblock %}</title>
     {% block style %}{% endblock %}
     {% endblock %}
     <script type="text/javascript" src="{{url_for('static', filename='/js/jquery-3.6.3.min.js')}}"></script>
@@ -29,7 +29,7 @@
         th, td{
             border: 1px solid #999;
             text-align: center;
-            padding: 20px 0;
+            padding: 5px 0;
         }
         table thead tr{
             background-color: #008c8c;
@@ -54,8 +54,19 @@
 
 </head>
 <body>
-<nav>
-    <ul><li><a href="{{ url_for('getInfo') }}">选择批次分析</a></li></ul>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+    <div class="container-header">
+        <a class="navbar-brand" href="#">GermountX CNVana</a>
+    </div>
+    <div>
+        <ul class="nav navbar-nav">
+            <li><a href="{{ url_for('getInfo') }}">分析</a></li>
+            <li><a>审核</a></li>
+            <li class="active"><a href="{{ url_for('getReportInfo') }}">报告</a></li>
+        </ul>
+    </div>
+    </div>
 </nav>
 <main>
     {% block content %}{% endblock %}

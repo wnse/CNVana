@@ -5,16 +5,20 @@
     <div class="row row-center">
         {{info|safe}}
     <br>
+    </div>
+    <div class="row row-center">
+        {{info_sample|safe}}
+    </div>
+    <div>
         <form role="form" method="post">
             {{ form.csrf_token }}
             <div class="submit">
                 {{form.submit_ana}}
             </div>
+
         </form>
     </div>
 </div>
 
 
 {% endblock %}
-
-

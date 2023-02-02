@@ -26,3 +26,11 @@ class AnaForm(FlaskForm):
     submit_ana = SubmitField(u'开始分析')
 
 
+class ReportForm(FlaskForm):
+    submit = SubmitField(u'报告生成')
+    search = SubmitField(u'报告查询')
+    batch = SelectField(u'数据批次：')
+    outdir = StringField(u'输出目录：', validators=[Optional()])
+
+class getReportForm(FlaskForm):
+    submit_ana = SubmitField(u'生成报告')

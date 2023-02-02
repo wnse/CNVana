@@ -8,8 +8,11 @@ import json
 import pandas as pd
 from flask import render_template, session, redirect, url_for, request, jsonify
 from cnv_ana import app
-from cnv_ana.forms import BasesLookupForm, AnaForm
+from cnv_ana.forms import BasesLookupForm, AnaForm, ReportForm, getReportForm
 import multiprocessing
+from bin.result2exp import dict2ext
+# from bin.make_PGS_report import make_PGS_report
+# from bin.make_PGS_report import check_sample_info
 
 
 class ChoiceObj(object):
@@ -66,37 +69,60 @@ def check_info(df):
         check['输出'] = 'OK'
 
     basepath = app.config['BASE_PATH']
-    tmp = []
-    for b in info['基线'].split(';'):
-        bf = os.path.join(basepath, b+'.txt')
-        if not os.path.isfile(bf):
-            tmp.append(f'【{bf}】不存在，请返回重新选择基线。')
-    if tmp:
-        check['基线'] = ';'.join(tmp)
-    else:
-        check['基线'] = 'OK'
+    if '基线' in info.index:
+        tmp = []
+        for b in info['基线'].split(';'):
+            bf = os.path.join(basepath, b+'.txt')
+            if not os.path.isfile(bf):
+                tmp.append(f'【{bf}】不存在，请返回重新选择基线。')
+        if tmp:
+            check['基线'] = ';'.join(tmp)
+        else:
+            check['基线'] = 'OK'
 
-    
-    if info['并行'] > cpu_count:
-        check['并行'] = f"CPU总核心数量为【{cpu_count}】，大于该值，将被设置为{advise_cpu}。"
-        info['并行'] = advise_cpu
-    else:
-        check['并行'] = 'OK'
+    if '并行' in info.index:
+        if info['并行'] > cpu_count:
+            check['并行'] = f"CPU总核心数量为【{cpu_count}】，大于该值，将被设置为{advise_cpu}。"
+            info['并行'] = advise_cpu
+        else:
+            check['并行'] = 'OK'
 
-    
-    if info['线程'] > cpu_count:
-        check['线程'] = f"CPU总核心数量为【{cpu_count}】，大于该值，将被设置为{advise_thread}。"
-        info['线程'] = advise_thread
-    else:
-        check['线程'] = 'OK'
+    if '线程' in info.index:
+        if info['线程'] > cpu_count:
+            check['线程'] = f"CPU总核心数量为【{cpu_count}】，大于该值，将被设置为{advise_thread}。"
+            info['线程'] = advise_thread
+        else:
+            check['线程'] = 'OK'
 
-    if info['并行'] * info['线程'] > cpu_count:
-        info['线程'] = advise_thread
-        info['并行'] = advise_cpu
-        check['并行'] = f"CPU总核心数量为【{cpu_count}】，【并行】的【线程】需要小于该值。"
-        check['线程'] = f"CPU总核心数量为【{cpu_count}】，【并行】的【线程】需要小于该值。"
+        if info['并行'] * info['线程'] > cpu_count:
+            info['线程'] = advise_thread
+            info['并行'] = advise_cpu
+            check['并行'] = f"CPU总核心数量为【{cpu_count}】，【并行】的【线程】需要小于该值。"
+            check['线程'] = f"CPU总核心数量为【{cpu_count}】，【并行】的【线程】需要小于该值。"
     
     return pd.DataFrame.from_dict(check,orient='index')[0]
+
+
+def check_sample_info(config_dir, batch_dir):
+    df_family_info = pd.DataFrame()
+    with open(os.path.join(config_dir,'template_type.json'),'rt') as h:
+        template_all = json.load(h)
+    file = os.path.join(batch_dir, 'sample_info.xlsx')
+    if os.path.isfile(file):
+        df_family_info = pd.read_excel(file, '家系')
+        if '模板' in df_family_info.columns:
+            df_family_info['模板分类'] = df_family_info['模板'].map(template_all)
+        df_sample_info = pd.read_excel(file, '样本').set_index('样本编号')
+
+    if '检测结果' in df_sample_info.columns:
+        res_dict = df_sample_info['检测结果'].to_dict()
+        df_sample_info_res = dict2ext(res_dict)
+        df_sample_info_res = pd.DataFrame.from_dict(df_sample_info_res,orient='index')
+        df_sample_info_res = pd.concat([df_sample_info_res,df_sample_info['家系编号']],axis=1)
+
+    else:
+        df_sample_info_res = pd.DataFrame([f'【检测结果】not in sample_info.xlsx'])
+    return df_family_info, df_sample_info_res.reset_index()
 
 def run_ana(info):
     # batch, outdir, baseline_list, parralel=2
@@ -109,7 +135,7 @@ def run_ana(info):
     for b in base.split(';'):
         baseline_list.append('-bg')
         baseline_list.append(os.path.join(app.config['BASE_PATH'],str(b)+'.txt'))
-    binpath = app.config['BIN_PATH']
+    binpath = os.path.join(app.config['BIN_PATH'],'CNVana_batch.py')
     db = app.config['DB_PATH']
     # cmd = ['python', binpath, '-i', inpath, '-o', outpath]
     if os.path.exists(outpath):
@@ -119,9 +145,18 @@ def run_ana(info):
     cmd = ['python', binpath, '-p', '_', '-i', inpath, '-o', outpath, 
     '-d', db, '-m', str(parralel), '-t', str(thread)]+baseline_list
     # '-bg', ' '.join(baseline_list)]
-    print(cmd)
+    # print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     return p.pid
+
+def run_report(info, config_dir):
+    inputdir = os.path.join(app.config['RAW_PATH'],info['批次'])
+    outdir = os.path.join(app.config['OUT_PATH'], info['输出'])
+    binpath = os.path.join(app.config['BIN_PATH'],'make_PGS_report.py')
+    cmd = ['python', binpath, '-i', inputdir, '-o', outdir, '-c', config_dir]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    return p.pid
+
 
 def log2html(logfile):
     log_dict = {}
@@ -210,11 +245,50 @@ def get_ana_res():
     else:
         return f"【{info['输出']}】中【log】不存在"
 
-@app.route('/test',methods=['GET','POST'])
-def test():
-    df_info = pd.DataFrame.from_dict({'a':'a','b':'b'},orient='index')
-    form_ana = AnaForm()
-    if form_ana.validate_on_submit():
-        return ('test')
 
-    return render_template('ana.html',info=df_info.to_html(col_space=20),form=form_ana)
+
+@app.route('/getReportInfo', methods=['GET','POST'])
+def getReportInfo():
+    allBatch = get_batches()
+    form = ReportForm()
+    default_str = '选择一个批次'
+    form.batch.choices = [('0',f'{default_str:-^50}')] + [(c, c) for c in allBatch]
+    form.batch.default = 0 
+    if form.validate_on_submit():
+        if form.submit.data:
+            info = {'批次':form.batch.data,'输出':form.outdir.data}
+            return redirect(url_for('report', info=json.dumps(info)))
+
+        if form.search.data:
+            info = {'输出':form.outdir.data}
+            df_info = pd.DataFrame.from_dict(info,orient='index')
+            df_info.columns=['信息确认']
+            return render_template('reportSample.html',info=df_info.to_html(col_space=50), info_dict=info)
+
+    return render_template('reportBatchInfo.html',
+                           form=form
+                           )
+
+@app.route('/report/<info>', methods=['GET', 'POST'])
+def report(info):
+    df_info = pd.DataFrame.from_dict(json.loads(info),orient='index')
+    df_info.columns=['信息确认']
+    df_info['说明'] = check_info(df_info)
+    df_family_info, df_sample_info  = check_sample_info(app.config['CNV_CONFIG'], os.path.join(app.config['RAW_PATH'], df_info.loc['批次','信息确认']))
+    ana_form = getReportForm()
+    df_merge = pd.merge(df_sample_info, df_family_info, left_on='家系编号', right_on='家系编号', how='outer')
+    info_sample = df_merge.set_index('index').to_html()
+    # info_sample = str(df_sample_info.to_html()) + str("<br>") + str(df_family_info.to_html())
+    if ana_form.validate_on_submit():
+        info_dict = df_info['信息确认'].to_dict()
+        pid = run_report(info_dict, app.config['CNV_CONFIG'])
+        print(f"PID for {info_dict} is {pid}")
+        # make_PGS_report(df_family_info, df_sample_info, 
+        #                 os.path.join(app.config['RAW_PATH'], df_info.loc['批次','信息确认']),
+        #                 os.path.join(app.config['OUT_PATH'], df_info.loc['输出','信息确认']),
+        #                 app.config['CNV_CONFIG'])
+        # print(f"PID for {info_dict} is {pid}")
+        return render_template('reportSample.html',info=df_info.to_html(col_space=50), info_dict=info_dict)
+        # return 'get report'
+    return render_template('reportInfo.html',info=df_info.to_html(col_space=50),info_sample=info_sample,form=ana_form)
+
