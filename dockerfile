@@ -27,8 +27,8 @@ RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN echo Asia/Shanghai > /etc/timezone
 
 RUN cd /cnv_ana \
-&& sh Miniconda3-py38_4.12.0-Linux-x86_64.sh -b -p /opt/conda \
-&& rm -rf Miniconda3-py38_4.12.0-Linux-x86_64.sh \
+&& sh Miniconda3-py38_22.11.1-1-Linux-x86_64.sh -b -p /opt/conda \
+&& rm -rf Miniconda3-py38_22.11.1-1-Linux-x86_64.sh \
 && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
 	&& echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc \
 && /opt/conda/bin/conda clean -afy \
@@ -42,10 +42,10 @@ ENV CONDA_DEFAULT_ENV pgt
 
 # SHELL ["conda", "run", "-n", "pgt", "/bin/bash", "-c"]
 
-RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
-&& R -e "BiocManager::install('DNAcopy')" \
-&& R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
-&& rm -rf /tmp/downloaded_packages/
+# RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
+# && R -e "BiocManager::install('DNAcopy')" \
+# && R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
+# && rm -rf /tmp/downloaded_packages/
 
 #CMD ["/bin/bash"]
 #CMD ["source /opt/conda/bin/activate"]

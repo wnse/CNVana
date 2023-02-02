@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/
+Miniconda3*
+*.tar
+.DS_Store

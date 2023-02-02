@@ -59,6 +59,7 @@ def write_table(table, row, col, text,
     paragraph.paragraph_format.line_spacing = Pt(line_spacing)
     # paragraph.paragraph_format.space_before = Pt(space_before)
     # paragraph.paragraph_format.space_after = Pt(space_after)
+
     fill_cell(cell, text, bold=bold, font_size=font_size)
     
 def insert_pic(table, row, col, pic_path, width=Cm(18), height=Cm(6)):
