@@ -136,12 +136,14 @@ def plot_chr_scatter_square(df, outpng, color_num=4):
 
 
 # %%
-def get_plot(csv_file, plot_type=1, png_file=None):
+def get_plot(csv_file, plot_type=1, png_file=None, sex_chr=''):
     if not png_file:
         png_file = csv_file + '.png'
 #     csv_file  = '/Users/yangkai/work/GermountX/CNV/广州/2023_01_17/B_PGTA_ZY06.fq_merge_bin_correct_da.csv'
     df = pd.read_csv(csv_file)
     df['chr_num'] = df['chr'].apply(get_chr_num)
+    if sex_chr == 'XX':
+        df.loc[df['chr'].isin(['y','Y','chrY']), 'copyNum']=0
     df = df.sort_values(by=['chr_num', 'Position']).reset_index()
     if plot_type==1:
         plot_chr_scatter_rect(df, png_file)
@@ -155,8 +157,9 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', required=True, help='cnv file (.csv)')
     parser.add_argument('-t', '--type', default=1, type=int, choices=[1,2,3], help='plot type for rect or squre or color')
     parser.add_argument('-o', '--output', default=None, help='out png file, default input.png')
+    parser.add_argument('-s', '--sex', default='', type=str, help='plot sex chr')
     args = parser.parse_args()
-    get_plot(args.input, args.type, args.output)
+    get_plot(args.input, args.type, args.output, args.sex)
 
 # %%
 # csv_file  = '/Users/yangkai/work/GermountX/CNV/广州/2023_01_17/B_PGTA_ZY06.fq_merge_bin_correct_da.csv'

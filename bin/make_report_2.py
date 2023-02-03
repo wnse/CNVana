@@ -87,6 +87,8 @@ def fill_template_table(table, data, text_alignment=None):
                     out_dict[match] = [rowIdx, colIdx]
                     try:
                         text = sub_cell(match, str(data[match]), cell.text)
+                        if text:
+                            text = str(text).split()[0]
                         cell.text = ''
                         fill_cell(cell, text, text_alignment=text_alignment)
                     except Exception as e:

@@ -220,7 +220,7 @@ def dict2ext(res_dict):
         #     tmp_exp = '未见异常'
         #     note = '推荐移植'
         out_dict[idx]['解释'] = final_exp
-        out_dict[idx]['备注'] = note
+        out_dict[idx]['推荐'] = note
         out_dict[idx]['WARN'] = ';'.join(total_warning)
     return out_dict
 

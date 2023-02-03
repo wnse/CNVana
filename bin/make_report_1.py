@@ -122,7 +122,7 @@ def make_report_1(tempate_file, dict_family, dict_sample, dict_config, outdir='.
                     if png_name == 2:
                         pngName = '2'
                     elif png_name == 3:
-                        pngName == '3'
+                        pngName = '3'
                     else:
                         pngName = '1'
                     # pic_path_a = os.path.join(pngdir, f'{s}.{pngName}.png')
