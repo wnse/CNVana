@@ -42,10 +42,10 @@ ENV CONDA_DEFAULT_ENV pgt
 
 # SHELL ["conda", "run", "-n", "pgt", "/bin/bash", "-c"]
 
-# RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
-# && R -e "BiocManager::install('DNAcopy')" \
-# && R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
-# && rm -rf /tmp/downloaded_packages/
+RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
+&& R -e "BiocManager::install('DNAcopy')" \
+&& R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
+&& rm -rf /tmp/downloaded_packages/
 
 #CMD ["/bin/bash"]
 #CMD ["source /opt/conda/bin/activate"]

@@ -97,9 +97,9 @@ def make_report_1(tempate_file, dict_family, dict_sample, dict_config, outdir='.
                 logging.info(f'\t{s}:{s_info}')
                 s_info['样本编号'] = str(s)    
                 bold = False
-                if '备注' in s_info.keys():
+                if '是否推荐' in s_info.keys():
                     # if re.search(',推荐移植', s_info['备注']):
-                    if s_info['备注'] == '推荐移植':
+                    if s_info['是否推荐'] == '推荐移植':
                         bold = True
                 for idx, idx_info in s_info.items():
                     if idx in dict_config.keys():

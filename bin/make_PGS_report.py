@@ -46,7 +46,10 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 		df_family_tmp['index'] = df_family_tmp['家系编号']
 		df_sample_tmp = df_sample[df_sample['家系编号'].isin(df_family_tmp['家系编号'].to_list())].fillna('').copy()
 		df_sample_tmp['index'] = df_sample[['家系编号','样本编号']].apply(lambda x: ':'.join(x.to_list()), axis=1)
-
+		if '整倍体' in df_sample_tmp.columns:
+			df_sample_tmp.loc[df_sample_tmp['整倍体']=='','整倍体']='未见异常'
+		if 'CNV' in df_sample_tmp.columns:
+			df_sample_tmp.loc[df_sample_tmp['CNV']=='','CNV']='未见异常'
 
 		if temp_type != 'nan':
 			temp_num, fig_num = str(temp_type).split('.')
@@ -71,6 +74,11 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 						print(f"{sn}\tmakePNG ERROR\t无csv", file=h, flush=True)			
 			
 			f_config = os.path.join(config_dir, 'template_config.xlsx')
+
+			if temp_num == '1-1':
+				if '检测结果' in df_sample_tmp.columns:
+					df_sample_tmp['检测结果'] =  df_sample_tmp['检测结果'].str.replace('dup','+')
+					df_sample_tmp['检测结果'] =  df_sample_tmp['检测结果'].str.replace('del','-')
 			
 			temp_docx = os.path.join(config_dir, f'template_{temp_num}.docx')
 			if '送检区域' in df_family_tmp.columns:
@@ -80,9 +88,9 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 					outdir_region = os.path.join(outdir, region)
 					if not os.path.isdir(outdir_region):
 						os.makedirs(outdir_region)
-					if temp_num == '1':
-						dict_family = df_family_tmp.set_index('index').to_dict(orient='index')
-						dict_sample = df_sample_tmp.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
+					if temp_num in ['1','1-1']:
+						dict_family = df_family_tmp_region.set_index('index').to_dict(orient='index')
+						dict_sample = df_sample_tmp_region.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
 						df_config = pd.read_excel(f_config, f'{temp_num}', index_col=0)
 						dict_config = df_config.to_dict(orient='index')
 						make_report_1(temp_docx, dict_family, dict_sample, dict_config, outdir=outdir_region, png_dir=png_dir, png_name=int(fig_num))
@@ -90,9 +98,9 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 					if temp_num in ['2','3']:
 						df_config = get_config(f_config, f'{temp_num}')
 						png_suffix = f'.{str(fig_num)}.png'
-						make_report_2(df_family_tmp.set_index('index'), df_sample_tmp.set_index('index'), df_config, temp_docx, outdir_region, png_dir, png_suffix)
+						make_report_2(df_family_tmp_region.set_index('index'), df_sample_tmp_region.set_index('index'), df_config, temp_docx, outdir_region, png_dir, png_suffix)
 			else:
-				if temp_num == '1':
+				if temp_num in ['1','1-1']:
 					dict_family = df_family_tmp.set_index('index').to_dict(orient='index')
 					dict_sample = df_sample_tmp.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
 					df_config = pd.read_excel(f_config, f'{temp_num}', index_col=0)

@@ -43,8 +43,8 @@ def add_row(table, row_no, height=None):
     while len(table.rows) < row_no+1:
         row = table.add_row()
         row.height_rule = WD_ROW_HEIGHT.AT_LEAST
-        if height:
-            row.height = Cm(height)
+        # if height:
+        row.height = Cm(height)
 
 def write_table(table, row, col, text, text_vertical=WD_ALIGN_VERTICAL.BOTTOM, bold=False, font_size=10):
     if len(table.rows) < row:
@@ -130,7 +130,7 @@ def fill_sample_table(table, data, text_alignment=None):
             for match, match_tableIdx in match_idx.items():
                 try:
                     rowIdx, colIdx = match_tableIdx
-                    add_row(table, rowIdx+n)
+                    add_row(table, rowIdx+n, height=1)
                     fill_cell(table.row_cells(rowIdx+n)[colIdx], sample[match], text_alignment=text_alignment)
                 except Exception as e:
                     logging.error(e)
