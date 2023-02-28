@@ -111,7 +111,7 @@ def get_schr(schr):
         #     note = ' Turner综合征'
         return (chr_num, f"{s}")
     else:
-        return None,None
+        return None,f"{schr}"
 
 
 def get_note(schr, exp_dict):
@@ -119,6 +119,8 @@ def get_note(schr, exp_dict):
     note = None
     if not schr:
         note = '不推荐移植'
+    elif schr == '无法判断':
+        out = '无法判断'
     elif schr and schr.upper() == 'XO':
         note = '不推荐移植'
         out = 'Turner综合征'
@@ -169,6 +171,8 @@ def get_note(schr, exp_dict):
                 note = '不推荐移植'
         elif len(exp_dict) > 1:
             note = '不推荐移植'
+        elif len(exp_dict) < 1:
+            note = ''
         else:
             note = '推荐移植'
     return out, note
@@ -208,6 +212,8 @@ def dict2ext(res_dict):
         # if total_lst:
         exp_dict, total_warning = lst2exp(chr_num, total_lst, idx, schr, total_warning)
         final_exp, note = get_note(schr, exp_dict)
+        if schr=='无法判断':
+            out_dict[idx]['性染色体'] = ''
         # else:
 
         #     for i, v in exp_dict.items():
@@ -234,7 +240,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     # f = 'test_data/test_input-0401.xlsx'
     f = args.input
-    res_dict = pd.read_excel(f, '样本').set_index('样本编号')['检测结果'].to_dict()
+    res_dict = pd.read_excel(f, '样本').set_index('样本编号')['检测结果'].astype(str).to_dict()
     try:
         df_dict = dict2ext(res_dict)
     except Exception as e:

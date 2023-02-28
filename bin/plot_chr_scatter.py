@@ -20,7 +20,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
 # import numpy as np
-
+plt.rcParams['font.sans-serif']=['SimHei']
+# plt.rc("font",family='Arial')
 # %%
 def get_chr_num(c):
     n = c.lstrip('chr')
@@ -74,6 +75,56 @@ def plot_chr_scatter_rect(df, outpng):
     plt.savefig(outpng,bbox_inches='tight',pad_inches=0)
     
 
+def plot_chr_scatter_rect_old(df, outpng):
+    x_label = []
+    x_label_pos = []
+    x_label_color = []
+    last_pos = 0
+    color_list = ['#009900','#FFCC00','#990099','#3333CC']
+    # fig, ax = plt.subplots(figsize=(30,4))
+    fig = plt.figure(figsize=(30,4))
+    ax = fig.add_axes([0.02,0.35,0.975,0.64])
+    for i in df['chr_num'].sort_values().unique():
+        df_tmp = df[df['chr_num']==i]
+        df_tmp = df_tmp.sort_values(by='Position')
+        df_tmp['Position'] = df_tmp['Position'] + last_pos
+        last_pos = df_tmp['Position'].max()
+        c = i
+        if i == 1:
+            c = 'Chr1'
+        if i == 23:
+            c = 'X'
+        if i == 24:
+            c = 'Y'
+        x_label.append(c)
+        x_label_pos.append(df_tmp['Position'].median())
+        color = color_list[i%4-1]
+        x_label_color.append(color)
+
+        plt.scatter(df_tmp['Position'], df_tmp['copyNum'], s=5, c=color )
+
+    X_l=[0.1,0.3,0.5,0.6,0.75,0.9]
+    Y_l=[0.65,0.55,0.8,0.5,0.85,0.45]
+    for x_tmp,y_tmp in zip(X_l, Y_l):
+        # ax.annotate(text="仅供科学研究", xy=(1e8, 4.5), fontsize=40, color='grey',style='italic')
+        ax.text(x=x_tmp-0.07, y=y_tmp-0.3, s="仅供科学研究", fontsize=40, color='grey',transform=ax.transAxes,
+            fontstyle='italic',fontweight="bold",alpha=0.3)
+
+    ax.set_yticks(range(0,7,1))
+    ax.set_yticklabels([0,'',2,'',4,'',6], fontdict={'size':20})
+    ax.set_xticks(x_label_pos)
+    ax.set_xticklabels(x_label, fontsize=20)
+    for i, t in zip(x_label_color, ax.xaxis.get_ticklabels()):
+        t.set_color(i)
+
+    ax.set_ylabel('Copy Number',fontdict={'size':30})
+
+    ax.set_xlim(0,last_pos+5e7)
+    ax.set_ylim(0,6.2)
+    ax.tick_params(which='major',direction='in')
+    ax.grid(visible=None, which='major', axis='y', color='grey', linestyle='dotted',linewidth=1)
+    plt.savefig(outpng,dpi=300)#,bbox_inches='tight',pad_inches=0)
+    
 
 # %%
 def plot_chr_scatter_square(df, outpng, color_num=4):
@@ -145,6 +196,8 @@ def get_plot(csv_file, plot_type=1, png_file=None, sex_chr=''):
     if sex_chr == 'XX':
         df.loc[df['chr'].isin(['y','Y','chrY']), 'copyNum']=0
     df = df.sort_values(by=['chr_num', 'Position']).reset_index()
+    if plot_type==0:
+        plot_chr_scatter_rect_old(df, png_file)
     if plot_type==1:
         plot_chr_scatter_rect(df, png_file)
     if plot_type==2:
@@ -155,7 +208,7 @@ def get_plot(csv_file, plot_type=1, png_file=None, sex_chr=''):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', required=True, help='cnv file (.csv)')
-    parser.add_argument('-t', '--type', default=1, type=int, choices=[1,2,3], help='plot type for rect or squre or color')
+    parser.add_argument('-t', '--type', default=1, type=int, choices=[0,1,2,3], help='plot type for rect or squre or color')
     parser.add_argument('-o', '--output', default=None, help='out png file, default input.png')
     parser.add_argument('-s', '--sex', default='', type=str, help='plot sex chr')
     args = parser.parse_args()

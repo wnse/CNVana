@@ -30,6 +30,9 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 		df_sample['是否推荐'] = df_sample['样本编号'].map(df_sample_info_res['推荐'].to_dict())
 		# df_sample['结果解释'] = df_sample['结果解释'].replace(';',';\n')
 
+	df_merge = pd.merge(df_family,df_sample,left_on='家系编号', right_on='家系编号', how='outer')
+	df_merge.to_excel(os.path.join(outdir,'sample_info_merge.xlsx'))
+
 	png_dir = os.path.join(outdir, 'png')
 	if not os.path.isdir(png_dir):
 		os.makedirs(png_dir)
@@ -57,12 +60,14 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 				f_idx, sn = idx.split(":")
 				sex_chr = ''
 				if '性染色体' in df_sample_tmp.columns:
-					sex_chr = df_sample_tmp.loc[df_sample_tmp[df_sample_tmp['index']==idx].index[0],'性染色体']
+					sex_chr_tmp = df_sample_tmp.loc[df_sample_tmp[df_sample_tmp['index']==idx].index[0],'性染色体']
+					if sex_chr_tmp:
+						sex_chr = f'-s {sex_chr_tmp}'
 				report_sample += 1
 				if sn in sample_csv.keys():
 					# print(sample_csv[sn], fig_num, png_dir)
 					png_file = os.path.join(png_dir, f'{sn}.{fig_num}.png')
-					cmd = f"python {os.path.join(bin_dir, 'plot_chr_scatter.py')} -i {sample_csv[sn]} -o {png_file} -t {fig_num} -s {sex_chr}"
+					cmd = f"python {os.path.join(bin_dir, 'plot_chr_scatter.py')} -i {sample_csv[sn]} -o {png_file} -t {fig_num} {sex_chr}"
 					try:
 						cmd_out = os.system(cmd)
 					except Exception as e:
@@ -130,7 +135,7 @@ def check_sample_info(config_dir, batch_dir, logfile=None):
 		template_all = json.load(h)
 	file = os.path.join(batch_dir, 'sample_info.xlsx')
 	if os.path.isfile(file):
-		df_family_info = pd.read_excel(file, '家系')
+		df_family_info = pd.read_excel(file, '家系',dtype={'女方年龄':str,'男方年龄':str})
 		if '模板' in df_family_info.columns:
 			df_family_info['模板分类'] = df_family_info['模板'].map(template_all)
 		df_sample_info = pd.read_excel(file, '样本')
@@ -158,5 +163,6 @@ if __name__ == '__main__':
 	logfile = os.path.join(outdir,'log')
 
 	df_family_info, df_sample_info = check_sample_info(config_dir, inputdir, logfile)
+
 	make_PGS_report(df_family_info, df_sample_info, inputdir, outdir, config_dir)
 
