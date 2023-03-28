@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from make_report_1 import make_report_1
 from make_report_2 import get_config, make_report_2
-from plot_chr_scatter import get_plot
+# from plot_chr_scatter import get_plot
 from result2exp import dict2ext
 
 
@@ -53,6 +53,10 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 			df_sample_tmp.loc[df_sample_tmp['整倍体']=='','整倍体']='未见异常'
 		if 'CNV' in df_sample_tmp.columns:
 			df_sample_tmp.loc[df_sample_tmp['CNV']=='','CNV']='未见异常'
+		if '性染色体' in df_sample_tmp.columns:
+			sex_map = {'XX':'0','XY':'1'}
+			df_sample_tmp['性别编码'] = df_sample_tmp['性染色体'].map(sex_map)
+			df_sample_tmp['性别编码'] = df_sample_tmp['性别编码'].fillna('')
 
 		if temp_type != 'nan':
 			temp_num, fig_num = str(temp_type).split('.')
@@ -84,42 +88,38 @@ def make_PGS_report(df_family, df_sample, inputdir, outdir, config_dir):
 				if '检测结果' in df_sample_tmp.columns:
 					df_sample_tmp['检测结果'] =  df_sample_tmp['检测结果'].str.replace('dup','+')
 					df_sample_tmp['检测结果'] =  df_sample_tmp['检测结果'].str.replace('del','-')
-			
+			if temp_num in ['4']:
+				if '检测结果' in df_sample_tmp.columns:
+					df_sample_tmp['检测结果_raw'] = df_sample_tmp['检测结果']
+					df_sample_tmp['检测结果_sex'] = df_sample_tmp['检测结果'].str.split(';').str[0]
+					df_sample_tmp['检测结果_chr'] = ';' + df_sample_tmp['检测结果'].str.split(';').str[1:].str.join(';')
+					df_sample_tmp.loc[df_sample_tmp['检测结果_chr']==';','检测结果_chr'] = ''
+					df_sample_tmp['检测结果_sex'] = df_sample_tmp['检测结果_sex'].str.replace(',XY$',',XN', regex=True).str.replace(',XX$',',XN', regex=True)
+					df_sample_tmp['检测结果'] = df_sample_tmp['检测结果_sex'] + df_sample_tmp['检测结果_chr']
+
+
 			temp_docx = os.path.join(config_dir, f'template_{temp_num}.docx')
 			if '送检区域' in df_family_tmp.columns:
-				for region in df_family_tmp['送检区域'].unique():
-					df_family_tmp_region = df_family_tmp[df_family_tmp['送检区域']==region]
-					df_sample_tmp_region = df_sample_tmp[df_sample_tmp['家系编号'].isin(df_family_tmp_region['家系编号'].to_list())]
-					outdir_region = os.path.join(outdir, region)
-					if not os.path.isdir(outdir_region):
-						os.makedirs(outdir_region)
-					if temp_num in ['1','1-1']:
-						dict_family = df_family_tmp_region.set_index('index').to_dict(orient='index')
-						dict_sample = df_sample_tmp_region.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
-						df_config = pd.read_excel(f_config, f'{temp_num}', index_col=0)
-						dict_config = df_config.to_dict(orient='index')
-						make_report_1(temp_docx, dict_family, dict_sample, dict_config, outdir=outdir_region, png_dir=png_dir, png_name=int(fig_num))
-
-					if temp_num in ['2','3']:
-						df_config = get_config(f_config, f'{temp_num}')
-						png_suffix = f'.{str(fig_num)}.png'
-						make_report_2(df_family_tmp_region.set_index('index'), df_sample_tmp_region.set_index('index'), df_config, temp_docx, outdir_region, png_dir, png_suffix)
+				df_family_tmp['送检区域'] = df_family_tmp['送检区域'].fillna('其他')
 			else:
+				df_family_tmp['送检区域'] = '其他'
+			for region in df_family_tmp['送检区域'].unique():
+				df_family_tmp_region = df_family_tmp[df_family_tmp['送检区域']==region]
+				df_sample_tmp_region = df_sample_tmp[df_sample_tmp['家系编号'].isin(df_family_tmp_region['家系编号'].to_list())]
+				outdir_region = os.path.join(outdir, region)
+				if not os.path.isdir(outdir_region):
+					os.makedirs(outdir_region)
 				if temp_num in ['1','1-1']:
-					dict_family = df_family_tmp.set_index('index').to_dict(orient='index')
-					dict_sample = df_sample_tmp.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
+					dict_family = df_family_tmp_region.set_index('index').to_dict(orient='index')
+					dict_sample = df_sample_tmp_region.groupby('家系编号').apply(lambda x: x.set_index('样本编号').to_dict(orient='index'))
 					df_config = pd.read_excel(f_config, f'{temp_num}', index_col=0)
 					dict_config = df_config.to_dict(orient='index')
-					make_report_1(temp_docx, dict_family, dict_sample, dict_config, outdir=outdir, png_dir=png_dir, png_name=int(fig_num))
+					make_report_1(temp_docx, dict_family, dict_sample, dict_config, outdir=outdir_region, png_dir=png_dir, png_name=int(fig_num))
 
-				if temp_num in ['2','3']:
+				if temp_num in ['2','3','4']:
 					df_config = get_config(f_config, f'{temp_num}')
 					png_suffix = f'.{str(fig_num)}.png'
-					make_report_2(df_family_tmp.set_index('index'), df_sample_tmp.set_index('index'), df_config, temp_docx, outdir, png_dir, png_suffix)
-
-			# dt = datetime.strftime(datetime.now(),format='%Y-%m-%d %H:%M:%S')
-			# with open(logfile, 'a') as h:
-			# 	print(f"{temp_type}\tDONE\t{dt}", file=h, flush=True)
+					make_report_2(df_family_tmp_region.set_index('index'), df_sample_tmp_region.set_index('index'), df_config, temp_docx, outdir_region, png_dir, png_suffix)
 		else:
 			for i in df_family[df_family['模板分类'] == 'nan']['家系编号'].to_list():
 				with open(logfile, 'a') as h:

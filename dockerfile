@@ -1,6 +1,6 @@
 # 建立conda环境
 
-FROM centos:latest
+FROM centos:centos7.9.2009
 
 MAINTAINER yangkai07@gmail.com
 
@@ -13,23 +13,28 @@ WORKDIR /cnv_ana
 COPY . /cnv_ana
 ENV PATH /opt/conda/bin:$PATH
 
-RUN cd /etc/yum.repos.d/ \
-&& sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* \
-&& sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* \
-&& yum install wget -y \
-&& yum install which -y \
-&& yum install libXrender-0.9.10-7.el8.i686 -y \
-&& yum install cairo-devel -y \
-&& wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo \
-&& yum makecache
+# RUN cd /etc/yum.repos.d/ \
+# && sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* \
+# && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* \
+# && yum install wget -y \
+# && yum install which -y \
+# && yum install libXrender-0.9.10-7.el8.i686 -y \
+# && yum install cairo-devel -y \
+# && wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo \
+# && yum makecache
+
+# 字体
+RUN yum install -y fontconfig ttmkfdir \
+&& cp /cnv_ana/fonts/* /usr/share/fonts/ \
+&& ttmkfdir -e /usr/share/X11/fonts/encodings/encodings.dir
 
 ## TIMEZONE
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN echo Asia/Shanghai > /etc/timezone
 
 RUN cd /cnv_ana \
-&& sh Miniconda3-py38_22.11.1-1-Linux-x86_64.sh -b -p /opt/conda \
-&& rm -rf Miniconda3-py38_22.11.1-1-Linux-x86_64.sh \
+&& sh Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda \
+&& rm -rf Miniconda3-latest-Linux-x86_64.sh \
 && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
 	&& echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc \
 && /opt/conda/bin/conda clean -afy \
@@ -41,13 +46,9 @@ RUN cd /cnv_ana \
 ENV PATH /opt/conda/envs/pgt/bin:$PATH
 ENV CONDA_DEFAULT_ENV pgt
 
-# SHELL ["conda", "run", "-n", "pgt", "/bin/bash", "-c"]
+# RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
+# && R -e "BiocManager::install('DNAcopy')" \
+# && R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
+# && rm -rf /tmp/downloaded_packages/
 
-RUN R -e "install.packages('BiocManager',repos='http://cran.us.r-project.org')" \
-&& R -e "BiocManager::install('DNAcopy')" \
-&& R -e "install.packages(c('ggplot2','cowplot','hash','gridExtra'),repos='http://cran.us.r-project.org')" \
-&& rm -rf /tmp/downloaded_packages/
-
-#CMD ["/bin/bash"]
-#CMD ["source /opt/conda/bin/activate"]
 CMD ["/opt/conda/envs/pgt/bin/gunicorn", "-c", "./gunicorn.conf.py", "wsgi:app"]

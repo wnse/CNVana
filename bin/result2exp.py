@@ -119,8 +119,6 @@ def get_note(schr, exp_dict):
     note = None
     if not schr:
         note = '不推荐移植'
-    elif schr == '无法判断':
-        out = '无法判断'
     elif schr and schr.upper() == 'XO':
         note = '不推荐移植'
         out = 'Turner综合征'
@@ -171,8 +169,6 @@ def get_note(schr, exp_dict):
                 note = '不推荐移植'
         elif len(exp_dict) > 1:
             note = '不推荐移植'
-        elif len(exp_dict) < 1:
-            note = ''
         else:
             note = '推荐移植'
     return out, note
@@ -212,8 +208,7 @@ def dict2ext(res_dict):
         # if total_lst:
         exp_dict, total_warning = lst2exp(chr_num, total_lst, idx, schr, total_warning)
         final_exp, note = get_note(schr, exp_dict)
-        if schr=='无法判断':
-            out_dict[idx]['性染色体'] = ''
+
         # else:
 
         #     for i, v in exp_dict.items():
@@ -228,6 +223,10 @@ def dict2ext(res_dict):
         out_dict[idx]['解释'] = final_exp
         out_dict[idx]['推荐'] = note
         out_dict[idx]['WARN'] = ';'.join(total_warning)
+        if schr=='无法判断':
+            out_dict[idx]['性染色体'] = ''
+            out_dict[idx]['解释'] = '无法判断'
+            out_dict[idx]['推荐'] = ''
     return out_dict
 
 

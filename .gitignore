@@ -131,3 +131,5 @@ data/
 Miniconda3*
 *.tar
 .DS_Store
+test/
+fonts/

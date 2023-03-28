@@ -20,7 +20,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
 # import numpy as np
-plt.rcParams['font.sans-serif']=['SimHei']
+plt.rcParams['font.sans-serif']=['SimSun']
+# plt.rcParams['font.sans-serif']=['SimHei']
 # plt.rc("font",family='Arial')
 # %%
 def get_chr_num(c):
